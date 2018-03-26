@@ -4,14 +4,14 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$debug = false;
-$appTitle = "OCAP";
+$debug = true;
+$appTitle = "WOG Ocap";
 $appDesc = "Operation Capture And Playback";
 $appAuthor = "MisterGoodson (aka Goodson [3CB])";
 const VERSION = "0.5.0.1-beta";
 
 // Please do not modify this as these stats help me get a job. Thank-you! :)
-// $statServerUrl = "http://138.201.116.116/ocap/remote/";
+$statServerUrl = "http://138.201.116.116/ocap/remote/";
 
 // Send cURL request to remote server
 // $url should not include '/ocap/remote/' and should not have a leading '/'

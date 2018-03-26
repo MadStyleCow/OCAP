@@ -528,7 +528,8 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 #filterGameInput {
-	height: 18px;
+	height: 24px;
+	padding: 1px 5px;
 }
 
 #filterSubmit {

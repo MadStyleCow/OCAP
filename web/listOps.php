@@ -8,13 +8,16 @@
         $error = 1;
     } else {
         // Get list of operations from DB
+        // Exclude type, due to it being unecessary
         $req = "SELECT * FROM operations WHERE
-            type LIKE '%".addslashes($_POST['type'])."%' AND
             mission_name LIKE '%".addslashes($_POST["name"])."%' AND 
             date <= '".addslashes($_POST['older'])."' AND 
             date >= '".addslashes($_POST['newer'])."'";
+
+        // Excute query
         $result = $db->query($req);
-        //$result = $db->query("SELECT * FROM operations");
+
+        // Parse results
         $ops = array();
         foreach($result as $row) {
             $ops[] = $row;

@@ -21,7 +21,7 @@ class UI {
 		this.modalBody = null;
 		this.modalButtons = null;
 		this.missionName = null;
-		//this.loadOpButton = null;
+		//this.loadOpButton = null;	// TODO: Remove
 		this.playPauseButton = null;
 		this.playbackSpeedSliderContainer = null;
 		this.playbackSpeedSlider = null;
@@ -45,7 +45,6 @@ class UI {
 		this.currentSide = "";
 		this.toggleNickname = null;
 		this.nicknameEnable = true;		
-		this.filterTypeGameInput = null;
 		this.filterGameInput = null;
 		this.calendar1 = null;
 		this.calendar2 = null;
@@ -171,7 +170,6 @@ class UI {
 		this.filterEventsInput = document.getElementById("filterEventsInput");
 		
 		// Setup filter panel
-		this.filterTypeGameInput = document.getElementById("filterTypeGameInput");
 		this.filterGameInput = document.getElementById("filterGameInput");
 		this.calendar1 = document.getElementById("calendar1");
 		this.calendar2 = document.getElementById("calendar2");
@@ -388,8 +386,6 @@ class UI {
 	
 	setModalOpList() {
 		var OpList;
-		var n = filterTypeGameInput.options.selectedIndex;
-		var type = filterTypeGameInput.options[n].value;
 		var name = filterGameInput.value;
 		var DateNewer = calendar1.value;
 		var DateOlder = calendar2.value;
@@ -398,7 +394,7 @@ class UI {
 			type : "POST",
 			async : false,
 			cache : false,
-			data: `type=${type}&name=${name}&newer=${DateNewer}&older=${DateOlder}`,
+			data: `name=${name}&newer=${DateNewer}&older=${DateOlder}`,
 			success: function(data){
 				OpList = data.list
 			}
@@ -455,8 +451,10 @@ class UI {
 	};
 	
 	showModalAbout() {
+		// Set text content
 		this.modalHeader.textContent = "Информация";
 		
+		// Set inner HTML
 		this.modalBody.innerHTML = `
 			<img src="images/ocap-logo.png" height="60px" alt="OCAP">
 			<h4 style=line-height:0>${appDesc} (BETA)</h4>
@@ -470,11 +468,16 @@ class UI {
 			<br/>
 			Нажатие пробела пауза/воспроизвести<br/>
 			Нажатие E/R показать/скрыть левую/правую панель`;
+
+		// Clear button inner html
 		this.modalButtons.innerHTML = "";
+
+		// Set a button
 		this.modalButtons.appendChild(this.makeModalButton("Close", function() {
 			ui.hideModal();
 		}));
 
+		// Show the dialog
 		this.showModal();
 	};
 
@@ -491,7 +494,7 @@ class UI {
 			<input readonly="true" type="text" id="ShareLink">
 		`;
 
-		let text = "ocap.red-bear.ru/?";
+		let text = "ocap.wogames.info/?";
 		text += "file=" + fileName;
 		text += "&frame=" + playbackFrame;
 		text += "&zoom=" + map.getZoom();
@@ -595,8 +598,6 @@ class UI {
 
 		var isHitEvent = (event.type == "hit");
 		var isConnectEvent = (event.type == "connected" || event.type == "disconnected");
-
-		//if (filterText == "") {return};
 
 		//TODO: Use .textContent instead of .innerHTML for increased performance
 		if (isHitEvent && !this.showHitEvents) {
