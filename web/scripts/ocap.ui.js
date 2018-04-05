@@ -112,6 +112,8 @@ class UI {
 		this.toggleFirelinesButton = toggleFirelinesButton;
 
 		// Toggle markers button
+		// TODO: Bring back once markers have been patched
+		/*
 		var toggleMarkersButton = document.getElementById("toggleMapMarker");
 		toggleMarkersButton.addEventListener("click", () => {
 			this.markersEnable = !this.markersEnable;
@@ -128,6 +130,7 @@ class UI {
 			this.showHint("Маркеры " + text);
 		});
 		this.toggleMarkersButton = toggleMarkersButton;
+		*/
 
 		// Setup left panel
 		this.leftPanel = document.getElementById("leftPanel");
@@ -312,10 +315,10 @@ class UI {
 	};
 	
 	updateTitleSide() {
-		sideCiv.textContent = "CIV\n\r" + countCiv;
-		sideEast.textContent = "OPFOR\n\r" + countEast;
-		sideGuer.textContent = "IND\n\r" + countGuer;
-		sideWest.textContent = "BLUFOR\n\r" + countWest;
+		sideCiv.textContent = "Гражданские\n\r" + countCiv;
+		sideEast.textContent = "Красные\n\r" + countEast;
+		sideGuer.textContent = "Независимые\n\r" + countGuer;
+		sideWest.textContent = "Синие\n\r" + countWest;
 	};
 
 	switchSide(side) {
@@ -473,7 +476,7 @@ class UI {
 		this.modalButtons.innerHTML = "";
 
 		// Set a button
-		this.modalButtons.appendChild(this.makeModalButton("Close", function() {
+		this.modalButtons.appendChild(this.makeModalButton("Закрыть", function() {
 			ui.hideModal();
 		}));
 
@@ -494,7 +497,7 @@ class UI {
 			<input readonly="true" type="text" id="ShareLink">
 		`;
 
-		let text = "ocap.wogames.info/?";
+		let text = "http://ocap.wogames.info/?";
 		text += "file=" + fileName;
 		text += "&frame=" + playbackFrame;
 		text += "&zoom=" + map.getZoom();
@@ -508,7 +511,7 @@ class UI {
 		});
 
 		this.modalButtons.innerHTML = "";
-		this.modalButtons.appendChild(this.makeModalButton("Close", function() {
+		this.modalButtons.appendChild(this.makeModalButton("Закрыть", function() {
 			ui.hideModal();
 			if (ui.modal.wasStopped) {
 				playPause();
