@@ -26,6 +26,7 @@ namespace OcapReplaySaver2
             // Create the lists
             this.Units = new List<Unit>();
             this.Events = new List<object>();
+            this.Markers = new List<object>();
         }
         #endregion
 
@@ -105,6 +106,7 @@ namespace OcapReplaySaver2
 
         /* Public methods */
         #region Public methods
+        
         /// <summary>
         /// This method is called, once a new unit should be registered in the unit list
         /// </summary>
@@ -139,6 +141,49 @@ namespace OcapReplaySaver2
         }
 
         /// <summary>
+        /// This method is called, once a units position is updated.
+        /// </summary>
+        /// <param name="pArguments">An array of position arguments</param>
+        public void onUpdateUnit(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 7)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Should we record this?
+            if (!_shouldRecord)
+            {
+                return;
+            }
+
+            // Does a unit with this ID exist?
+            if (this.Units.Exists(x => x.ID == int.Parse(pArguments[0])))
+            {
+                // Yes it does
+                Unit _unit = this.Units.Find(x => x.ID == int.Parse(pArguments[0]));
+
+                // But we need to push less data to it, than is in the array we have
+                _unit.Positions.Add(
+                    new object[] {
+                        JsonConvert.DeserializeObject(pArguments[1]),
+                        int.Parse(pArguments[2]),
+                        int.Parse(pArguments[3]),
+                        int.Parse(pArguments[4]),
+                        pArguments[5].Replace("\"", ""),
+                        int.Parse(pArguments[6])
+                });
+
+                // Update the total time of the mission
+                if (TotalFrames < _unit.Positions.Count)
+                {
+                    TotalFrames = _unit.Positions.Count;
+                }
+            }
+        }
+
+        /// <summary>
         /// This method is called, once a new vehicle should be registered in the unit list
         /// </summary>
         /// <param name="pArguments">An array of arguments</param>
@@ -170,12 +215,191 @@ namespace OcapReplaySaver2
         }
 
         /// <summary>
+        /// This method is called, once a vehicle's position is updated.
+        /// </summary>
+        /// <param name="pArguments">An array of arguments</param>
+        public void onUpdateVehicle(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 5)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Should we record this?
+            if (!_shouldRecord)
+            {
+                return;
+            }
+
+            // Does a unit with this ID exist?
+            if (this.Units.Exists(x => x.ID == int.Parse(pArguments[0])))
+            {
+                // Yes it does
+                Unit _unit = this.Units.Find(x => x.ID == int.Parse(pArguments[0]));
+
+                // But we need to push less data to it, than is in the array we have
+                _unit.Positions.Add(
+                    new object[] {
+                        JsonConvert.DeserializeObject(pArguments[1]),
+                        int.Parse(pArguments[2]),
+                        int.Parse(pArguments[3]),
+                        JsonConvert.DeserializeObject(pArguments[4]),
+                });
+
+                // Update the total time of the mission
+                if (TotalFrames < _unit.Positions.Count)
+                {
+                    TotalFrames = _unit.Positions.Count;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is called, once a marker is created.
+        /// </summary>
+        /// <param name="pArguments">An array of arguments</param>
+        public void onRegisterMarker(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 11)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Should we record this?
+            if (!_shouldRecord)
+            {
+                return;
+            }
+
+            // First, we need to check the color of the marker
+            string _color = pArguments[7].Replace("\"", "");
+
+            if (_color.Equals("any"))
+            {
+                // Set the color to 000000
+                pArguments[0] = "000000";
+            }
+
+            // Create a list of marker parameters
+            List<object> _marker = new List<object>();
+
+            // Add parameters
+            _marker.Add(pArguments[0].Replace("\"", ""));
+            _marker.Add(int.Parse(pArguments[1]));
+            _marker.Add(pArguments[2].Replace("\"", ""));
+            _marker.Add(pArguments[3].Replace("\"", ""));
+            _marker.Add(int.Parse(pArguments[4]));
+            _marker.Add(int.Parse(pArguments[5]));
+            _marker.Add(int.Parse(pArguments[6]));
+            _marker.Add(_color);
+            _marker.Add(JsonConvert.DeserializeObject(pArguments[8]));
+            _marker.Add(int.Parse(pArguments[9]));
+            _marker.Add(new List<object[]>()
+            {
+                new object[]
+                {
+                    int.Parse(pArguments[4]),
+                    JsonConvert.DeserializeObject(pArguments[10]),  // This 
+                    int.Parse(pArguments[1])    // And this should actually be an object
+                }
+            });
+
+            // Push the result into the marker list
+            this.Markers.Add(_marker.ToArray());
+        }
+
+        /// <summary>
+        /// This method is called, once a marker position has been updated.
+        /// </summary>
+        /// <param name="pArguments">An array of arguments</param>
+        public  void onUpdateMarker(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 3)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Should we record this?
+            if (!_shouldRecord)
+            {
+                return;
+            }
+
+            // Does the marker exist?
+            if (this.Markers.Exists(x => (string)(((object[])x)[0]) == (pArguments[0].Replace("\"", ""))))
+            {
+                // Get the marker
+                object[] _marker = (object[]) this.Markers.Find(x => (string)(((object[])x)[0]) == (pArguments[0].Replace("\"", "")));
+
+                // Get the array of marker frames
+                List<object[]> _markerFrames = (List<object[]>) _marker[10];
+
+                // Which frame are we looking for?
+                var _targetFrame = int.Parse(pArguments[1]);
+
+                // Does a frame entry exist for this marker?
+                if (_markerFrames.Exists(x => (int)x[0] == _targetFrame))
+                {
+                    // Such a marker frame exists, update it
+                    object[] _markerFrame = _markerFrames.Find(x => (int)x[0] == _targetFrame);
+
+                    // Update it.
+                    _markerFrame[0] = _targetFrame;
+                    _markerFrame[1] = JsonConvert.DeserializeObject(pArguments[2]);
+                    _markerFrame[2] = 0;
+                }
+                else
+                {
+                    // One does not exist.
+                    // Push a new entry
+                    _markerFrames.Add(new object[]
+                    {
+                        _targetFrame,
+                        JsonConvert.DeserializeObject(pArguments[2]),
+                        0
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is called, once a marker has been removed.
+        /// </summary>
+        /// <param name="pArguments">An array of arguments.</param>
+        public void onRemoveMarker(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 2)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Should we record this?
+            if (!_shouldRecord)
+            {
+                return;
+            }
+
+            // Does the marker exist?
+            if (this.Markers.Exists(x => (string)(((object[])x)[0]) == (pArguments[0].Replace("\"", ""))))
+            {
+                // Get the marker
+                var _marker = this.Markers.Find(x => (string)(((object[])x)[0]) == (pArguments[0].Replace("\"", "")));
+
+                // Set the property (I assume its deletedAtFrame)
+                ((object[])_marker)[5] = int.Parse(pArguments[1]);
+            }
+        }
+
+        /// <summary>
         /// This method is called, once an event happens.
         /// </summary>
         /// <param name="pArguments">An array of event arguments</param>
         public void onEvent(string[] pArguments)
         {
-
             // Should we record this?
             if (!_shouldRecord)
             {
@@ -217,117 +441,6 @@ namespace OcapReplaySaver2
         }
 
         /// <summary>
-        /// This method is called, once a units position is updated.
-        /// </summary>
-        /// <param name="pArguments">An array of position arguments</param>
-        public void onUpdateUnit(string[] pArguments)
-        {
-            // Check amount of arguments
-            if (pArguments.Length != 7)
-            {
-                throw new ArgumentException("Incorrect amount of arguments");
-            }
-
-            // Should we record this?
-            if (!_shouldRecord)
-            {
-                return;
-            }
-
-            // Does a unit with this ID exist?
-            if (this.Units.Exists(x => x.ID == int.Parse(pArguments[0]))) {
-                // Yes it does
-                Unit _unit = this.Units.Find(x => x.ID == int.Parse(pArguments[0]));
-
-                // But we need to push less data to it, than is in the array we have
-                _unit.Positions.Add(
-                    new object[] {
-                        JsonConvert.DeserializeObject(pArguments[1]),
-                        int.Parse(pArguments[2]),
-                        int.Parse(pArguments[3]),
-                        int.Parse(pArguments[4]),
-                        pArguments[5].Replace("\"", ""),
-                        int.Parse(pArguments[6])
-                });
-
-                // Update the total time of the mission
-                if (TotalFrames < _unit.Positions.Count)
-                {
-                    TotalFrames = _unit.Positions.Count;
-                }
-            }
-        }
-
-        public void onUpdateVehicle(string[] pArguments)
-        {
-            // Check amount of arguments
-            if (pArguments.Length != 5)
-            {
-                throw new ArgumentException("Incorrect amount of arguments");
-            }
-
-            // Should we record this?
-            if (!_shouldRecord)
-            {
-                return;
-            }
-
-            // Does a unit with this ID exist?
-            if (this.Units.Exists(x => x.ID == int.Parse(pArguments[0])))
-            {
-                // Yes it does
-                Unit _unit = this.Units.Find(x => x.ID == int.Parse(pArguments[0]));
-
-                // But we need to push less data to it, than is in the array we have
-                _unit.Positions.Add(
-                    new object[] {
-                        JsonConvert.DeserializeObject(pArguments[1]),
-                        int.Parse(pArguments[2]),
-                        int.Parse(pArguments[3]),
-                        JsonConvert.DeserializeObject(pArguments[4]),
-                });
-
-                // Update the total time of the mission
-                if (TotalFrames < _unit.Positions.Count)
-                {
-                    TotalFrames = _unit.Positions.Count;
-                }
-            }
-        }
-
-        /// <summary>
-        /// This method is called, once a mission has been started.
-        /// </summary>
-        /// <param name="pArguments">Array of arguments describing a mission.</param>
-        public void onMissionStarted(string[] pArguments)
-        {
-            // Check amount of arguments
-            if (pArguments.Length != 4)
-            {
-                throw new ArgumentException("Incorrect amount of arguments");
-            }
-
-            // At this point, we need to check. Were we previously recording?
-            if (_shouldRecord)
-            {
-                // Yes we were. Dump whatever we had on to the disk.
-                this.Export();
-            }
-            
-            // In any case, we should clear all the data.
-            this.onClear(pArguments);
-
-            // Indicate that we are now recording.
-            _shouldRecord = true;
-
-            // Initialize a new instance of the replay
-            this.World = pArguments[0].Replace("\"", "");
-            this.Mission = pArguments[1].Replace("\"", "");
-            this.Author = pArguments[2].Replace("\"", "");
-            this.Delay = int.Parse(pArguments[3]);
-        }
-
-        /// <summary>
         /// This method is called, once an entity fires.
         /// </summary>
         /// <param name="pArguments">Array of arguments</param>
@@ -361,6 +474,31 @@ namespace OcapReplaySaver2
         }
 
         /// <summary>
+        /// This method is called, once a mission has been started.
+        /// </summary>
+        /// <param name="pArguments">Array of arguments describing a mission.</param>
+        public void onMissionStarted(string[] pArguments)
+        {
+            // Check amount of arguments
+            if (pArguments.Length != 4)
+            {
+                throw new ArgumentException("Incorrect amount of arguments");
+            }
+
+            // Discard any previous data.
+            this.onClear(pArguments);
+
+            // Indicate that we are now recording.
+            _shouldRecord = true;
+
+            // Initialize a new instance of the replay
+            this.World = pArguments[0].Replace("\"", "");
+            this.Mission = pArguments[1].Replace("\"", "");
+            this.Author = pArguments[2].Replace("\"", "");
+            this.Delay = int.Parse(pArguments[3]);
+        }
+
+        /// <summary>
         /// This method is called, once a missions ends.
         /// </summary>
         /// <param name="pArguments"></param>
@@ -382,6 +520,8 @@ namespace OcapReplaySaver2
                 this.Delay = int.Parse(pArguments[3]);
                 this.TotalFrames = int.Parse(pArguments[4]);
             }
+
+            this.prepareMarkerFrames(this.TotalFrames);
 
             // Now, we need to parse the output into a JSON file and export it.
             this.Export();
@@ -407,11 +547,39 @@ namespace OcapReplaySaver2
             // Clear all existing lists
             this.Units.Clear();
             this.Events.Clear();
-            this.Markers = null;
+            this.Markers.Clear();
+
+            // Indicate we are no longer writing
+            this._shouldRecord = false;
         }
         #endregion
 
         /* Private methods */
+        private void prepareMarkerFrames(int pTotalFrames)
+        {
+            for (int i = 0; i < this.Markers.Count; i++)
+            {
+                object[] _marker = (object[]) this.Markers[i];
+
+                // Create a replacement object array
+                object[] _replacementArray = new object[]
+                {
+                    _marker[2],
+                    _marker[3],
+                    _marker[4],
+                    (int) _marker[5] == -1 ? pTotalFrames : _marker[5],
+                    _marker[6],
+                    _marker[7],
+                    _marker[9],
+                    _marker[10]
+                };
+
+                // Replace the markers
+                this.Markers[i] = _replacementArray;
+            }
+        }
+        
+
         /// <summary>
         /// This method is called to export the data into a JSON file.
         /// </summary>
@@ -426,8 +594,9 @@ namespace OcapReplaySaver2
                     JsonConvert.SerializeObject(new Config()
                     {
                         AddURL = "http://changeme.com",
-                        FileDestination = @"C:\",
                         InsertURL = "http://changeme.com",
+                        CopyLocal = true,
+                        FileDestination = @"C:\",
                         Timeout = 120
                     }));
             }
@@ -436,33 +605,44 @@ namespace OcapReplaySaver2
             Config _config = (Config)JsonConvert.DeserializeObject(File.ReadAllText("./config/wog_ocap.json"), typeof(Config));
 
             // Define a file name
-            var _fileName = String.Format("{0}.json", Path.GetRandomFileName());
+            var _fileName = String.Format("{0}_{1}_{2}.json", 
+                DateTime.Now.ToString("yyyy_MM_dd__hh_mm"),
+                this.Mission, this.World);
 
-            // Write the JSON to the file
-            File.WriteAllText(Path.Combine(_config.FileDestination, _fileName),
-                JsonConvert.SerializeObject(this));
+            // Do we write local or write remote?
+            if (_config.CopyLocal)
+            {
+                // Write the JSON to the file
+                File.WriteAllText(Path.Combine(_config.FileDestination, _fileName),
+                    JsonConvert.SerializeObject(this));
+            }
+            else
+            {
+                // TODO: Implement remote server upload
+            }
 
+            // TODO: Extract requests into separate methods / class
+            // Insert a record into the database
             // Create a URL string
-            var _urlBuilder = new StringBuilder();
+            var _dbUrlBuilder = new StringBuilder();
 
-            _urlBuilder.Append(_config.InsertURL);
-            
-            _urlBuilder.Append(String.Format("&worldName={0}", Uri.EscapeDataString(this.World)));
-            _urlBuilder.Append(String.Format("&missionName={0}", Uri.EscapeDataString(this.Mission)));
-            _urlBuilder.Append(String.Format("&missionDuration={0}", Uri.EscapeDataString(this.TotalFrames.ToString())));
-            _urlBuilder.Append(String.Format("&filename={0}", _fileName));
-            _urlBuilder.Append("&type=wog");
+            _dbUrlBuilder.Append(_config.InsertURL);
+            _dbUrlBuilder.Append(String.Format("&worldName={0}", Uri.EscapeDataString(this.World)));
+            _dbUrlBuilder.Append(String.Format("&missionName={0}", Uri.EscapeDataString(this.Mission)));
+            _dbUrlBuilder.Append(String.Format("&missionDuration={0}", Uri.EscapeDataString(this.TotalFrames.ToString())));
+            _dbUrlBuilder.Append(String.Format("&filename={0}", Uri.EscapeDataString(_fileName)));
+            _dbUrlBuilder.Append("&type=wog");
 
             // Now we need to make an HTTP request to add the entry to the database.
             // Make the actual response
-            HttpWebRequest _request = (HttpWebRequest)WebRequest.Create(_urlBuilder.ToString());
+            HttpWebRequest _dbRequest = (HttpWebRequest)WebRequest.Create(_dbUrlBuilder.ToString());
 
             // Set parameters
-            _request.Method = WebRequestMethods.Http.Get;
-            _request.Timeout = _config.Timeout;
+            _dbRequest.Method = WebRequestMethods.Http.Get;
+            _dbRequest.Timeout = _config.Timeout * 1000;
 
             // Make the request
-            _request.GetResponseAsync();
+            _dbRequest.GetResponse();
         }
     }
 }

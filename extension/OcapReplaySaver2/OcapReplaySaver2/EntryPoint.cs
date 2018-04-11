@@ -1,5 +1,5 @@
 ﻿// Define build type
-// #define WIN64
+#define WIN64
 
 // Includes
 using RGiesecke.DllExport;

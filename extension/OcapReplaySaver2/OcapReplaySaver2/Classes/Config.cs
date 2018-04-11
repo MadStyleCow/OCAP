@@ -14,6 +14,9 @@ namespace OcapReplaySaver2
         [JsonProperty(PropertyName = "fileDestination")]
         public string FileDestination { get; set; }
 
+        [JsonProperty(PropertyName = "copyLocal")]
+        public bool CopyLocal { get; set; }
+
         [JsonProperty(PropertyName = "httpRequestTimeout")]
         public int Timeout { get; set; }
     }

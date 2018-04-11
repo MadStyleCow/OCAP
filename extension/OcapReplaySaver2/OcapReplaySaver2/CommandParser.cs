@@ -25,37 +25,50 @@ namespace OcapReplaySaver2
                     Replay.Instance.onRegisterUnit(pArguments);
                     break;
 
-                case ":NEW:VEH:":
-                    Replay.Instance.onRegisterVehicle(pArguments);
-                    break;
-
-                case ":EVENT:":
-                    Replay.Instance.onEvent(pArguments);
-                    break;
-
-                case ":CLEAR:":
-                    Replay.Instance.onClear(pArguments);
-                    break;
-
                 case ":UPDATE:UNIT:":
                     Replay.Instance.onUpdateUnit(pArguments);
+                    break;
+
+                case ":NEW:VEH:":
+                    Replay.Instance.onRegisterVehicle(pArguments);
                     break;
 
                 case ":UPDATE:VEH:":
                     Replay.Instance.onUpdateVehicle(pArguments);
                     break;
 
-                case ":SAVE:":
-                    Replay.Instance.onMissionEnded(pArguments);
+                case ":MARKER:CREATE:":
+                    Replay.Instance.onRegisterMarker(pArguments);
+                    break;
+
+                case ":MARKER:MOVE:":
+                    Replay.Instance.onUpdateMarker(pArguments);
+                    break;
+
+                case ":MARKER:DELETE:":
+                    Replay.Instance.onRemoveMarker(pArguments);
+                    break;
+
+                case ":EVENT:":
+                    Replay.Instance.onEvent(pArguments);
+                    break;
+
+                case ":FIRED:":
+                    Replay.Instance.onEntityFired(pArguments);
                     break;
 
                 case ":START:":
                     Replay.Instance.onMissionStarted(pArguments);
                     break;
 
-                case ":FIRED:":
-                    Replay.Instance.onEntityFired(pArguments);
+                case ":SAVE:":
+                    Replay.Instance.onMissionEnded(pArguments);
                     break;
+
+                case ":CLEAR:":
+                    Replay.Instance.onClear(pArguments);
+                    break;
+
             }
         }
     }
