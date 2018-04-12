@@ -6,7 +6,7 @@ html, body, #map {
 	font-family: Roboto, Arial, sans-serif;
 	color: #F2F2F2;
 	overflow: hidden;
-	font-size: 13px;
+	font-size: 14px;
 	cursor: default;
 }
 
@@ -94,17 +94,18 @@ html, body, #map {
 
 #controlSide {
 	height: 50px;
-	width: 240px;
+	width: 220px;
 	background-color: rgba(0,0,0,0.5);
 }
 
 #sideWest, #sideEast, #sideGuer, #sideCiv {
-	display : none;
-	width : 45px;
-	height : 37px;
+	display : inline-block;
+	width : calc(25% - 3px);
+	height : 50px;
 	cursor : pointer;
 	text-align: center;
 	padding-top: 13px;
+	vertical-align: top;
 }
 
 #rightPanel .panelContent {
@@ -120,7 +121,7 @@ html, body, #map {
 
 #leftPanel {
 	left: 0;
-	width: 240px;
+	width: 220px;
 	height: calc(100% - 40px - 60px);
 }
 
@@ -190,8 +191,6 @@ html, body, #map {
 #filterEventsInput, #filterUnitsInput:focus {
 	outline: none;
 }
-
-
 
 #leftPanel ul, #rightPanel ul {
 	padding: 0;
@@ -479,7 +478,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	font-size: 16px;
 	background-color: rgba(155,0,0,0.9);
 	width: 100%;
-	margin-bottom: 0px;
+	margin-bottom: 3px;
 	padding: 5px;
 	padding-left: 10px;
 	padding-right: 10px;
@@ -519,17 +518,18 @@ input[type=range]::-webkit-slider-runnable-track {
 	border:1px solid black;
 }
 
-#filterTypeGameInput,#filterGameInput {
-	margin: 2px;
+#filterTypeGameInput, #filterGameInput, #calendar1, #calendar2 {
+	margin: 4px;
 }
 
 #filterTypeGameInput {
 	height: 24px;
+	width: 60px;
 }
 
 #filterGameInput {
-	height: 24px;
-	padding: 1px 5px;
+	height: 18px;
+	width: 225px;
 }
 
 #filterSubmit {
@@ -596,8 +596,6 @@ input[type=range]::-webkit-slider-runnable-track {
 	padding: 5px;
 	text-transform: uppercase;
 	text-align: left;
-	cursor: pointer;
-	text-align: center;
 }
 
 .modalButton:last-child {

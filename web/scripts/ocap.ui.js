@@ -21,7 +21,7 @@ class UI {
 		this.modalBody = null;
 		this.modalButtons = null;
 		this.missionName = null;
-		//this.loadOpButton = null;	// TODO: Remove
+		//this.loadOpButton = null;
 		this.playPauseButton = null;
 		this.playbackSpeedSliderContainer = null;
 		this.playbackSpeedSlider = null;
@@ -44,12 +44,13 @@ class UI {
 		this.cursorTooltip = null;
 		this.currentSide = "";
 		this.toggleNickname = null;
-		this.nicknameEnable = true;		
+		this.nicknameEnable = true;
+		this.filterTypeGameInput = null;
 		this.filterGameInput = null;
 		this.calendar1 = null;
 		this.calendar2 = null;
-		this.filterSubmit = null;			 
-							 
+		this.filterSubmit = null;
+
 
 		this._init();
 	};
@@ -85,12 +86,12 @@ class UI {
 			var text;
 			if (this.nicknameEnable) {
 				toggleNicknameButton.style.opacity = 1;
-				text = "показываются"
+				text = getLocalizable("shown");
 			} else {
 				toggleNicknameButton.style.opacity = 0.5;
-				text = "скрыты"
+				text = getLocalizable("hidden");
 			};
-			this.showHint("Никнеймы игроков и название техники " + text);
+			this.showHint(getLocalizable("nickname") + text);
 		});
 		this.toggleNicknameButton = toggleNicknameButton;
 		// Toggle firelines button
@@ -101,19 +102,17 @@ class UI {
 			var text;
 			if (this.firelinesEnabled) {
 				toggleFirelinesButton.style.opacity = 1;
-				text = "показываются";
+				text = getLocalizable("shown");
 			} else {
 				toggleFirelinesButton.style.opacity = 0.5;
-				text = "скрыты (исключение убийства)";
+				text = getLocalizable("hidden");
 			};
 
-			this.showHint("Линии выстрелов " + text);
+			this.showHint(getLocalizable("line_fire") + text);
 		});
 		this.toggleFirelinesButton = toggleFirelinesButton;
 
 		// Toggle markers button
-		// TODO: Bring back once markers have been patched
-		/*
 		var toggleMarkersButton = document.getElementById("toggleMapMarker");
 		toggleMarkersButton.addEventListener("click", () => {
 			this.markersEnable = !this.markersEnable;
@@ -121,16 +120,15 @@ class UI {
 			var text;
 			if (this.markersEnable) {
 				toggleMarkersButton.style.opacity = 1;
-				text = "показываются";
+				text = getLocalizable("shown");
 			} else {
 				toggleMarkersButton.style.opacity = 0.5;
-				text = "скрыты";
+				text = getLocalizable("hidden");
 			};
 
-			this.showHint("Маркеры " + text);
+			this.showHint(getLocalizable("markers") + text);
 		});
 		this.toggleMarkersButton = toggleMarkersButton;
-		*/
 
 		// Setup left panel
 		this.leftPanel = document.getElementById("leftPanel");
@@ -171,8 +169,9 @@ class UI {
 			toggleConnectEvents();
 		});
 		this.filterEventsInput = document.getElementById("filterEventsInput");
-		
+
 		// Setup filter panel
+		this.filterTypeGameInput = document.getElementById("filterTypeGameInput");
 		this.filterGameInput = document.getElementById("filterGameInput");
 		this.calendar1 = document.getElementById("calendar1");
 		this.calendar2 = document.getElementById("calendar2");
@@ -207,7 +206,7 @@ class UI {
 		// Hide/show ui on keypress
 		mapDiv.addEventListener("keypress", (event) => {
 			//console.log(event.charCode);
-			
+
 			switch (event.charCode) {
 				case 101: // e
 					this.toggleLeftPanel();
@@ -313,12 +312,12 @@ class UI {
 			this.leftPanel.style.display = "none";
 		};
 	};
-	
+
 	updateTitleSide() {
-		sideCiv.textContent = "Гражданские\n\r" + countCiv;
-		sideEast.textContent = "Красные\n\r" + countEast;
-		sideGuer.textContent = "Независимые\n\r" + countGuer;
-		sideWest.textContent = "Синие\n\r" + countWest;
+		sideCiv.textContent = "CIV\n\r" + countCiv;
+		sideEast.textContent = "OPFOR\n\r" + countEast;
+		sideGuer.textContent = "IND\n\r" + countGuer;
+		sideWest.textContent = "BLUFOR\n\r" + countWest;
 	};
 
 	switchSide(side) {
@@ -353,7 +352,7 @@ class UI {
 			this.rightPanel.style.display = "none";
 		};
 	};
-	
+
 	setModal(modal, modalHeader, modalFilter, modalBody, modalButtons) {
 		this.modal = modal;
 		this.modalHeader = modalHeader;
@@ -361,11 +360,11 @@ class UI {
 		this.modalBody = modalBody;
 		this.modalButtons = modalButtons;
 	};
-	
+
 	showModalOpSelection() {
 		// Set header/body
-		this.modalHeader.textContent = "Выбор миссии";
-		this.modalBody.textContent = "Составление списка...";
+		localizable(this.modalHeader, "select_mission");
+		localizable(this.modalBody, "list_compilation");
 
 		// Add buttons
 /*		var playButton = document.createElement("div");
@@ -386,9 +385,11 @@ class UI {
 		this.showModal();
 		this.modalFilter.style.display = "inherit";
 	};
-	
+
 	setModalOpList() {
 		var OpList;
+		var n = filterTypeGameInput.options.selectedIndex;
+		var type = filterTypeGameInput.options[n].value;
 		var name = filterGameInput.value;
 		var DateNewer = calendar1.value;
 		var DateOlder = calendar2.value;
@@ -397,22 +398,20 @@ class UI {
 			type : "POST",
 			async : false,
 			cache : false,
-			data: `name=${name}&newer=${DateNewer}&older=${DateOlder}`,
+			data: `type=${type}&name=${name}&newer=${DateNewer}&older=${DateOlder}`,
 			success: function(data){
 				OpList = data.list
 			}
 		});
 
-		this.modalHeader.textContent = "Выбор миссии";
-
 		// Set body
 		var table = document.createElement("table");
 		var headerRow = document.createElement("tr");
-		
-		var columnNames = ["Миссия", "Карта", "Дата", "Длительность"];
+
+		var columnNames = ["mission", "map", "data", "durability"];
 		columnNames.forEach(function(name) {
 			var th = document.createElement("th");
-			th.textContent = name;
+			localizable(th, name);
 			th.className = "medium";
 			headerRow.appendChild(th);
 		});
@@ -435,7 +434,7 @@ class UI {
 			});
 
 			row.addEventListener("click", () => {
-				this.modalBody.textContent = "Загрузка...";
+				localizable(this.modalBody, "loading");
 				processOp("data/" + op.filename);
 			});
 			table.insertBefore(row, table.childNodes[1]);
@@ -443,7 +442,7 @@ class UI {
 		this.modalBody.textContent = "";
 		this.modalBody.appendChild(table);
 	};
-	
+
 	makeModalButton(text, func) {
 		var button = document.createElement("div");
 		button.className = "modalButton";
@@ -452,35 +451,41 @@ class UI {
 
 		return button;
 	};
-	
+
 	showModalAbout() {
-		// Set text content
-		this.modalHeader.textContent = "Информация";
-		
-		// Set inner HTML
+		localizable(this.modalHeader, "info");
+
 		this.modalBody.innerHTML = `
 			<img src="images/ocap-logo.png" height="60px" alt="OCAP">
 			<h4 style=line-height:0>${appDesc} (BETA)</h4>
 			<h5 style=line-height:0>v${appVersion}</h5>
-			Создатель оригинального OCAP: MisterGoodson (aka Goodson [3CB]) <br/>
+			Author: MisterGoodson (aka Goodson [3CB]) <br/>
 			<a href="https://forums.bistudio.com/forums/topic/194164-ocap-operation-capture-and-playback-aar-system/" target="_blank">BI Forum Post</a><br/>
 			<a href="https://github.com/mistergoodson/OCAP" target="_blank">GitHub Link</a>
 			<br/>
 			<br/>
-			Модифицировали: Dell, Zealot, Kurt<br/>
+			Modified: Dell, Zealot, Kurt<br/>
+			<a href="https://github.com/Zealot111/OCAP" target="_blank">GitHub Link</a>
 			<br/>
-			Нажатие пробела пауза/воспроизвести<br/>
-			Нажатие E/R показать/скрыть левую/правую панель`;
-
-		// Clear button inner html
+			<span id="keyControl-playPause"></span><br/>
+			<span id="keyControl-leftPanel"></span><br/>
+			<span id="keyControl-rightPanel"></span><br/>
+			<span id="keyControl-lang"></span>
+			<select id="switchLang">
+				<option value="ru"${current_lang == "ru" ? 'selected/' : ''}>Русский</option>
+				<option value="en"${current_lang == "en" ? 'selected/' : ''}>English</option>
+			</select>`;
+		localizable(document.getElementById("keyControl-playPause"), "play-pause");
+		localizable(document.getElementById("keyControl-leftPanel"), "show-hide-left-panel");
+		localizable(document.getElementById("keyControl-rightPanel"), "show-hide-right-panel");
+		localizable(document.getElementById("keyControl-lang"), "language");
+		document.getElementById("switchLang").onchange = function(){switchLocalizable(this.value)};
+		deleteLocalizable(this.modalBody);
 		this.modalButtons.innerHTML = "";
-
-		// Set a button
-		this.modalButtons.appendChild(this.makeModalButton("Закрыть", function() {
+		this.modalButtons.appendChild(this.makeModalButton("Close", function() {
 			ui.hideModal();
 		}));
 
-		// Show the dialog
 		this.showModal();
 	};
 
@@ -490,14 +495,11 @@ class UI {
 			this.modal.wasStopped = true;
 			playPause();
 		}
-		this.modalHeader.textContent = "Поделиться";
+		localizable(this.modalHeader, "shared");
+		localizable(this.modalBody, "copy_link", `</h2> </center>
+		<input readonly="true" type="text" id="ShareLink">`, `<center> <h2 style="color:white">`);
 
-		this.modalBody.innerHTML = `
-			<center> <h2 style="color:white"> Скопируйте ссылку </h2> </center>
-			<input readonly="true" type="text" id="ShareLink">
-		`;
-
-		let text = "http://ocap.wogames.info/?";
+		let text = document.location.host + "/?";
 		text += "file=" + fileName;
 		text += "&frame=" + playbackFrame;
 		text += "&zoom=" + map.getZoom();
@@ -511,7 +513,7 @@ class UI {
 		});
 
 		this.modalButtons.innerHTML = "";
-		this.modalButtons.appendChild(this.makeModalButton("Закрыть", function() {
+		this.modalButtons.appendChild(this.makeModalButton(getLocalizable("close"), function() {
 			ui.hideModal();
 			if (ui.modal.wasStopped) {
 				playPause();
@@ -520,24 +522,24 @@ class UI {
 
 		this.showModal();
 	};
-	
+
 	showModal() {
 		this.modal.style.display = "inherit";
 	};
-	
+
 	hideModal() {
 		this.modal.style.display = "none";
 		this.modalFilter.style.display = "none";
 	};
-	
+
 	showPlaybackSpeedSlider() {
 		this.playbackSpeedSlider.style.display = "inherit";
 	};
-	
+
 	hidePlaybackSpeedSlider() {
 		this.playbackSpeedSlider.style.display = "none";
 	};
-	
+
 	removeEvent(event) {
 		var el = event.getElement();
 
@@ -546,7 +548,7 @@ class UI {
 			this.eventList.removeChild(el);
 		};
 	};
-	
+
 	addEvent(event) {
 		var el = event.getElement();
 
@@ -575,7 +577,7 @@ class UI {
 
 		this.filterEvent(event);
 	};
-	
+
 	showHint(text) {
 		this.hint.textContent = text;
 		this.hint.style.display = "inherit";
@@ -584,7 +586,7 @@ class UI {
 			this.hint.style.display = "none";
 		}, 5000);
 	};
-	
+
 	addTickToTimeline(frameNum) {
 		var frameWidth = this.frameSliderWidthInPercent / endFrame;
 		var tick = document.createElement("div");
@@ -594,13 +596,15 @@ class UI {
 		tick.style.width = frameWidth + "%";
 		this.eventTimeline.appendChild(tick);
 	};
-	
+
 	filterEvent(event) {
 		var el = event.getElement();
 		var filterText = this.filterEventsInput.value.toLowerCase();
 
 		var isHitEvent = (event.type == "hit");
 		var isConnectEvent = (event.type == "connected" || event.type == "disconnected");
+
+		//if (filterText == "") {return};
 
 		//TODO: Use .textContent instead of .innerHTML for increased performance
 		if (isHitEvent && !this.showHitEvents) {
