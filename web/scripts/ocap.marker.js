@@ -1,7 +1,7 @@
 class Marker {
 	constructor(type, text, player, color, startFrame, endFrame, side, positions) {
 		this._type = type;
-		this._icon = L.icon({ iconSize: [35, 35], iconUrl: `images/markers/${type}/${color}.png` });
+		this._icon = L.icon({ iconSize: [35, 35], iconUrl: `images/markers/${type}/${color.substring(1, color.length)}.png` });
 		this._text = text;
 		this._player = player;
 		this._color = color;
