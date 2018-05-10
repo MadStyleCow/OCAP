@@ -442,12 +442,12 @@ function processOp(filepath) {
 					let alive = entry[2];
 
 					if (type == "unit") {
-						let name = entry[4];
+						let name = entry[5];
 						if (name == "" && i != 0)
 							name = positions[i - 1].name;
 						if (name == "" && i == 0)
 							name = "unknown";
-						positions.push({ position: pos, direction: dir, alive: alive, isInVehicle: (entry[3] == 1), name: name, isPlayer: entry[5] });
+						positions.push({ position: pos, direction: dir, alive: alive, isInVehicle: (entry[3] == 1), name: name, isPlayer: entry[6] });
 					} else {
 						let crew = entry[3];
 						positions.push({ position: pos, direction: dir, alive: alive, crew: crew });
